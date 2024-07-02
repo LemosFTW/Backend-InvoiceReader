@@ -24,8 +24,9 @@ model Invoice {
   id            Int      @id @default(autoincrement())
   userId        Int
   imageUrl      String
-  extractedText String
+  filename      String
+  file          Bytes   
+  extractedText String   
   uploadDate    DateTime @default(now())
-
   user          User     @relation(fields: [userId], references: [id])
 }
