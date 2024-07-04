@@ -7,50 +7,87 @@ import * as fs from 'fs/promises';
 export class AppService {
   constructor(private prisma: PrismaService) { }
 
-  async uploadInvoice(file: Express.Multer.File): Promise<string> {
+  private async getUser(userEmail: string) {
+    let user = await this.prisma.user.findUnique({
+      where: { email: userEmail }
+    });
+    return user;
+  }
+
+  async invoices() {
+    let invoices = await this.prisma.invoice.findMany();
+
+    let invoicesFiltered = invoices.map((invoice) => { return invoice.filename; });
+    return invoicesFiltered;
+  }
+
+
+  async getInvoices(body: { email: string; }): Promise<any> {
+    try {
+      let user = await this.getUser(body.email);
+
+      if (user === null)
+        return 'error';
+
+      if (user.email !== body.email)
+        return 'error';
+
+      let invoices = await this.prisma.invoice.findMany({
+        where: { userId: user.id }
+      });
+
+      let invoicesFiltered = invoices.map((invoice) => {
+        return { id: invoice.id, filename: invoice.filename, extractedText: invoice.extractedText };
+      });
+
+      return invoicesFiltered;
+    } catch (error) {
+      console.error('Erro ao buscar invoices:', error);
+      return 'fail';
+    }
+  }	
+
+  async uploadInvoice(file: Express.Multer.File, email: string): Promise<string> {
     try {
       if (!file) {
         console.error('Arquivo não encontrado');
         return 'error';
       }
 
-      //TODO: verificar se o usuario existe na bd
+      let user = await this.getUser(email);
 
-      // Lê o arquivo como um buffer
+      if (user === null)
+        return 'error';
+
+      if (user.email !== email)
+        return 'error';
+
+
+
       const buffer = await fs.readFile(file.path);
 
+
       /*
-      id            Int      @id @default(autoincrement())
+      id            Int
       userId        Int
-      imageUrl      String
       filename      String
       file          Bytes
       extractedText String
-      uploadDate    DateTime @default(now())
-      user          User     @relation(fields: [userId], references: [id])
-      
+      uploadDate    DateTime 
+      user          User     
       */
 
 
+      await this.prisma.invoice.create({
+        data: {
+          filename: file.originalname as string,
+          file: buffer as Buffer,
+          userId: user.id as number,
+          extractedText: "",
 
+        }
+      });
 
-
-      // await this.prisma.invoice.create({
-
-      //   data: {
-      //     userId,
-      //     imageUrl: file.path,
-      //     filename: file.originalname,
-      //     file: buffer, // Salva o conteúdo do arquivo como buffer
-      //     uploadDate: new Date(),
-      //   },
-      // });
-
-
-
-
-
-      // Remova o arquivo temporário do sistema de arquivos após salvar no banco de dados
       await fs.unlink(file.path);
 
       return 'success';
@@ -61,15 +98,53 @@ export class AppService {
   }
 
 
+  async updateInvoice(body: { fileName: string; userEmail: string; content: string; }): Promise<string> {
+    try {
+      let user = await this.getUser(body.userEmail);
 
-  async getInvoices(): Promise<string[]> {
-    let invoices = this.prisma.invoice.findMany();
+      if (user === null)
+        return 'error';
+
+      if (user.email !== body.userEmail)
+        return 'error';
+
+      let invoice = await this.prisma.invoice.findMany({
+        where: { filename: body.fileName }
+      });
 
 
-    console.log(invoices);
-    return null;
-  }
 
+      if (invoice.length === 0)
+        return 'error';
+
+      let find = false;
+
+      for (let i = 0; i < invoice.length; i++) {
+        if (invoice[i].userId !== user.id)
+          continue;
+
+        find = true;
+
+        await this.prisma.invoice.update({
+          where: { id: invoice[i].id },
+          data: {
+            extractedText: body.content
+          }
+        });
+      }
+
+
+
+      if (!find)
+        return 'error';
+      else
+        return 'success';
+
+    } catch (error) {
+      console.error('Erro ao atualizar invoice:', error);
+      return 'fail';
+    }
+  };
 
   async getUsers(): Promise<any> {
     let users = (await this.prisma.user.findMany());
@@ -78,6 +153,7 @@ export class AppService {
     });
     return usersFiltered;
   }
+
 
   async createUser(body: { data: { email: string; name: string; }; }): Promise<string> {
     try {

@@ -23,7 +23,6 @@ model User {
 model Invoice {
   id            Int      @id @default(autoincrement())
   userId        Int
-  imageUrl      String
   filename      String
   file          Bytes   
   extractedText String   
