@@ -26,7 +26,6 @@ export class AppController {
       return 'success';
   }
 
-
   @Post('invoices')
   async getInvoice(@Body() body): Promise<any> {
     return await this.appService.getInvoices(body);

@@ -21,6 +21,7 @@ export class AppService {
     return invoicesFiltered;
   }
 
+  
   async updateInvoiceContent(body: { fileName: string; email: string; content: string; }, id: number): Promise<string> {
     let user = await this.getUser(body.email);
 
@@ -52,37 +53,34 @@ export class AppService {
 
 
 
-  async deleteInvoice(body: { email: string;}, idToDelete: number ): Promise<string> {
+  async deleteInvoice(body: { email: string; }, idToDelete: number): Promise<string> {
     try {
 
-    let user = await this.getUser(body.email);
+      let user = await this.getUser(body.email);
 
-    if (user === null)
-      return 'error';	
+      if (user === null)
+        return 'error';
 
-    let invoice = await this.prisma.invoice.findUnique({
-      where: { id: idToDelete }
-    });
+      let invoice = await this.prisma.invoice.findUnique({
+        where: { id: idToDelete }
+      });
 
-    if (invoice === null)
-      return 'error';
+      if (invoice === null)
+        return 'error';
 
-    if (invoice.userId !== user.id)
-      return 'error';
+      if (invoice.userId !== user.id)
+        return 'error';
 
-    await this.prisma.invoice.delete({
-      where: { id: idToDelete }
-    });
+      await this.prisma.invoice.delete({
+        where: { id: idToDelete }
+      });
 
-    return 'success';
-  }
-  catch (error) {
-    console.error('Erro ao deletar invoice:', error);
-    return 'fail';
-  }
-
-
-
+      return 'success';
+    }
+    catch (error) {
+      console.error('Erro ao deletar invoice:', error);
+      return 'fail';
+    }
   }
 
 
@@ -98,7 +96,7 @@ export class AppService {
 
       let invoices = await this.prisma.invoice.findMany({
         where: { userId: user.id },
-        orderBy: { id: 'asc'}
+        orderBy: { id: 'asc' }
       });
 
       let invoicesFiltered = invoices.map((invoice) => {
@@ -110,7 +108,7 @@ export class AppService {
       console.error('Erro ao buscar invoices:', error);
       return 'fail';
     }
-  }	
+  }
 
   async uploadInvoice(file: Express.Multer.File, email: string): Promise<string> {
     try {
