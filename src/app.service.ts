@@ -21,6 +21,35 @@ export class AppService {
     return invoicesFiltered;
   }
 
+  async updateInvoiceContent(body: { fileName: string; email: string; content: string; }, id: number): Promise<string> {
+    let user = await this.getUser(body.email);
+
+    if (user === null)
+      return 'error';
+
+    if (user.email !== body.email)
+      return 'error';
+
+    let invoice = await this.prisma.invoice.findUnique({
+      where: { id: id }
+    });
+
+    if (invoice === null)
+      return 'error';
+
+    if (invoice.userId !== user.id)
+      return 'error';
+
+    await this.prisma.invoice.update({
+      where: { id: id },
+      data: {
+        extractedText: body.content
+      }
+    });
+
+    return 'success';
+  }
+
 
 
   async deleteInvoice(body: { email: string;}, idToDelete: number ): Promise<string> {
@@ -68,7 +97,8 @@ export class AppService {
         return 'error';
 
       let invoices = await this.prisma.invoice.findMany({
-        where: { userId: user.id }
+        where: { userId: user.id },
+        orderBy: { id: 'asc'}
       });
 
       let invoicesFiltered = invoices.map((invoice) => {

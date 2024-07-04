@@ -1,14 +1,10 @@
-import { Controller, Get,UploadedFile, Post,UseInterceptors,Req,HttpException, HttpStatus, Body, Patch, HttpCode,Delete, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get,UploadedFile, Post,UseInterceptors,Req,HttpException, HttpStatus, Body, Patch, HttpCode,Delete, Param, ParseIntPipe, Put } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
-
-
-
-
 
   @HttpCode(200)
   @Delete('invoices/:id')
@@ -17,10 +13,17 @@ export class AppController {
     //TODO: check the error code
     if (result === 'error') 
       throw new HttpException('Failed to delete invoice', HttpStatus.CONFLICT);
-
     else
       return 'success';
+  }
 
+  @Put('invoices/:id')
+  async updateInvoiceContent(@Body() body, @Param('id', new ParseIntPipe()) id): Promise<any> {
+    let result = await this.appService.updateInvoiceContent(body,id);
+    if (result === 'error') 
+      throw new HttpException('Failed to update invoice', HttpStatus.INTERNAL_SERVER_ERROR);
+    else
+      return 'success';
   }
 
 
