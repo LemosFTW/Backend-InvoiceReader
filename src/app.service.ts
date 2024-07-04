@@ -22,6 +22,41 @@ export class AppService {
   }
 
 
+
+  async deleteInvoice(body: { email: string;}, idToDelete: number ): Promise<string> {
+    try {
+
+    let user = await this.getUser(body.email);
+
+    if (user === null)
+      return 'error';	
+
+    let invoice = await this.prisma.invoice.findUnique({
+      where: { id: idToDelete }
+    });
+
+    if (invoice === null)
+      return 'error';
+
+    if (invoice.userId !== user.id)
+      return 'error';
+
+    await this.prisma.invoice.delete({
+      where: { id: idToDelete }
+    });
+
+    return 'success';
+  }
+  catch (error) {
+    console.error('Erro ao deletar invoice:', error);
+    return 'fail';
+  }
+
+
+
+  }
+
+
   async getInvoices(body: { email: string; }): Promise<any> {
     try {
       let user = await this.getUser(body.email);

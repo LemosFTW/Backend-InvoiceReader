@@ -1,4 +1,4 @@
-import { Controller, Get,UploadedFile, Post,UseInterceptors,Req,HttpException, HttpStatus, Body, Patch, HttpCode } from '@nestjs/common';
+import { Controller, Get,UploadedFile, Post,UseInterceptors,Req,HttpException, HttpStatus, Body, Patch, HttpCode,Delete, Param, ParseIntPipe } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AppService } from './app.service';
 
@@ -8,6 +8,20 @@ export class AppController {
 
 
 
+
+
+  @HttpCode(200)
+  @Delete('invoices/:id')
+  async deleteInvoice(@Body() body, @Param('id', new ParseIntPipe()) id): Promise<any> {
+    let result = await this.appService.deleteInvoice(body,id);
+    //TODO: check the error code
+    if (result === 'error') 
+      throw new HttpException('Failed to delete invoice', HttpStatus.CONFLICT);
+
+    else
+      return 'success';
+
+  }
 
 
   @Post('invoices')
