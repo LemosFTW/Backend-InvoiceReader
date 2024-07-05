@@ -45,6 +45,7 @@ export class AppController {
 
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
+  
   @Patch('upload')
   async updateInvoice(@Body() body): Promise<string> {
     let result = await this.appService.updateInvoice(body);
