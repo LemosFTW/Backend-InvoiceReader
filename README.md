@@ -31,6 +31,17 @@
 ```bash
 $ npm install
 ```
+##Setup Your Enviremonet:
+configurate env file with:
+```bash
+DATABASE_URL=
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+```
+
+
 
 ## Running the app
 
@@ -44,6 +55,12 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+## After running the backend -> Run the frontEnd
+https://github.com/LemosFTW/Invoice-Reader
+
+
+
 
 ## Test
 
