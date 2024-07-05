@@ -19,12 +19,10 @@ export class JwtAuthGuard implements CanActivate {
 
         async () => {            
             let result = await this.authService.validateToken(token)
-            console.log(result)
         };
         
         
         return this.authService.validateToken(token).then((isValid) => {
-            console.log(isValid)
             if (!isValid)
                 throw new UnauthorizedException('Token inválido');
 
