@@ -1,12 +1,14 @@
-import { Controller, Get,UploadedFile, Post,UseInterceptors,Req,HttpException, HttpStatus, Body, Patch, HttpCode,Delete, Param, ParseIntPipe, Put } from '@nestjs/common';
+import { Controller, Get,UploadedFile, Post,UseInterceptors,Req,HttpException, HttpStatus, Body, Patch, HttpCode,Delete, Param, ParseIntPipe, Put,UseGuards  } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AppService } from './app.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard'
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
   @Delete('invoices/:id')
   async deleteInvoice(@Body() body, @Param('id', new ParseIntPipe()) id): Promise<any> {
     let result = await this.appService.deleteInvoice(body,id);
@@ -18,6 +20,7 @@ export class AppController {
   }
 
   @Put('invoices/:id')
+  @UseGuards(JwtAuthGuard)
   async updateInvoiceContent(@Body() body, @Param('id', new ParseIntPipe()) id): Promise<any> {
     let result = await this.appService.updateInvoiceContent(body,id);
     if (result === 'error') 
@@ -33,12 +36,14 @@ export class AppController {
 
 
   @Get('invoices')
+  @UseGuards(JwtAuthGuard)
   async getInvoices(): Promise<any> {
     return await this.appService.invoices();
   }
 
 
   @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
   @Patch('upload')
   async updateInvoice(@Body() body): Promise<string> {
     let result = await this.appService.updateInvoice(body);
@@ -54,6 +59,7 @@ export class AppController {
   }
 
   @Post('upload')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadInvoice(@UploadedFile() file: Express.Multer.File, @Body('userEmail') userEmail : string): Promise<string>{
     try {
@@ -71,11 +77,13 @@ export class AppController {
 
 
   @Get('users')
+  @UseGuards(JwtAuthGuard)
   async getUsers():Promise<any> {
     return await this.appService.getUsers();
   }
 
   @Post('users')
+  @UseGuards(JwtAuthGuard)
   async createUser(@Body() body):Promise<string> {
     let result = await this.appService.createUser(body);
 
