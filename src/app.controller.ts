@@ -30,6 +30,7 @@ export class AppController {
   }
 
   @Post('invoices')
+  @UseGuards(JwtAuthGuard)
   async getInvoice(@Body() body): Promise<any> {
     return await this.appService.getInvoices(body);
   }
@@ -64,13 +65,17 @@ export class AppController {
   async uploadInvoice(@UploadedFile() file: Express.Multer.File, @Body('userEmail') userEmail : string): Promise<string>{
     try {
       const result = await this.appService.uploadInvoice(file, userEmail);
-      if (result === 'error') 
-        //404
+      if (result === 'error'){
+        console.log('404')
         throw new HttpException('Failed to upload file', HttpStatus.BAD_REQUEST);
+      } 
       
       return 'success';
     } catch (error) {
       //500
+      
+      console.log('500')
+      console.log(error)
       throw new HttpException('Failed to upload file', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

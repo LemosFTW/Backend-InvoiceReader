@@ -116,9 +116,10 @@ export class AppService {
         console.error('Arquivo não encontrado');
         return 'error';
       }
+      console.log(file)
 
       let user = await this.getUser(email);
-
+      console.log(user)
       if (user === null)
         return 'error';
 
@@ -214,14 +215,20 @@ export class AppService {
     let usersFiltered = users.map((user) => {
       return user.email;
     });
+
+    
     return usersFiltered;
   }
 
 
   async createUser(body: { data: { email: string; name: string; }; }): Promise<string> {
     try {
-      if (this.prisma.user.findUnique({ where: { email: body.data.email } }))
+      var user = await this.prisma.user.findUnique({ where: { email: body.data.email } })
+      if (user !== null){
+        console.log('Usuário já existe')
         return 'success';
+      }
+      
 
       if (body.data.email === '' || body.data.name === '')
         return 'fail'

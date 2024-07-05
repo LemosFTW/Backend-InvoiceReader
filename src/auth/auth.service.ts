@@ -1,24 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { OAuth2Client } from 'google-auth-library';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
-    private client: OAuth2Client;
-
-    constructor() {
-        this.client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID as string);
-    }
+    private targetAudience: string = process.env.GOOGLE_CLIENT_ID as string;
 
     async validateToken(token: string): Promise<boolean> {
+        if (!token) {
+            console.log('Token is undefined or empty');
+            return false;
+        }
+
         try {
-            const ticket = await this.client.verifyIdToken({
-                idToken: token,
-                audience: process.env.GOOGLE_CLIENT_ID as string, 
-            });
-            const payload = ticket.getPayload();
-            // Verifique o payload conforme necessário
-            return payload ? true : false;
+            const response = await axios.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`);
+            const data = response.data;
+
+
+            return data.aud === this.targetAudience;
+
         } catch (error) {
+            console.error('Error verifying token:', error.response ? error.response.data : error.message);
             return false;
         }
     }
