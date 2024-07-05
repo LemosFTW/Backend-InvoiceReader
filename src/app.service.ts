@@ -164,51 +164,40 @@ export class AppService {
 
   async updateInvoice(body: { fileName: string; userEmail: string; content: string; }): Promise<string> {
     try {
-      let user = await this.getUser(body.userEmail);
-
-      if (user === null)
+      const user = await this.getUser(body.userEmail);
+  
+      if (!user) {
         return 'error';
-
-      if (user.email !== body.userEmail)
-        return 'error';
-
-      let invoice = await this.prisma.invoice.findMany({
-        where: { filename: body.fileName }
-      });
-
-
-
-      if (invoice.length === 0)
-        return 'error';
-
-      let find = false;
-
-      for (let i = 0; i < invoice.length; i++) {
-        if (invoice[i].userId !== user.id)
-          continue;
-
-        find = true;
-
-        await this.prisma.invoice.update({
-          where: { id: invoice[i].id },
-          data: {
-            extractedText: body.content
-          }
-        });
       }
-
-
-
-      if (!find)
+  
+      if (user.email !== body.userEmail) {
         return 'error';
-      else
-        return 'success';
-
+      }
+  
+      const invoice = await this.prisma.invoice.findFirst({
+        where: {
+          filename: body.fileName,
+          userId: user.id,
+        },
+      });
+  
+      if (!invoice) {
+        return 'error';
+      }
+  
+      await this.prisma.invoice.update({
+        where: { id: invoice.id },
+        data: { extractedText: body.content },
+      });
+  
+      return 'success';
     } catch (error) {
-      console.error('Erro ao atualizar invoice:', error);
-      return 'fail';
+      console.error(error);
+      return 'error';
     }
-  };
+  }
+
+  
 
   async getUsers(): Promise<any> {
     let users = (await this.prisma.user.findMany());
